@@ -1,14 +1,18 @@
-#include <Arduino.h>
 
-const int pin = PA0;
+#include <Arduino.h>
+int pin = PA11;
 
 void setup() {
+  //SerialUSB.begin(115200);
   pinMode(pin, OUTPUT);
 }
 
 void loop() {
+  //SerialUSB.println(millis());
+  delay(1000);
+  
   digitalWrite(pin, HIGH);
-  delay(2000);
+  delay(1000);
+  
   digitalWrite(pin, LOW);
-  delay(2000);
 }
