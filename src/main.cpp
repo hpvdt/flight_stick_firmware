@@ -14,6 +14,5 @@ void loop() {
   DEBUG_PORT.println("HELLO WORLD");
   digitalWrite(pin, HIGH);
   delay(1000);
-  
   digitalWrite(pin, LOW);
 }
