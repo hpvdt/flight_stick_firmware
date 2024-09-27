@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 
 HardwareSerial DEBUG_PORT(PA2, PA3); // Serial line to the programming header
@@ -15,4 +14,5 @@ void loop() {
   digitalWrite(pin, HIGH);
   delay(1000);
   digitalWrite(pin, LOW);
+  delay(1000);
 }
