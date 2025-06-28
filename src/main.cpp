@@ -16,3 +16,22 @@ void loop() {
   digitalWrite(pin, LOW);
   delay(1000);
 }
+
+
+fdsfsd
+
+////
+#define MIN(a,b);
+
+int MIN(int a, int b){
+  if ( a <= b){
+    return a;
+  }
+  if (a > b){
+    return b;
+  }
+}
+
+void (a){               01101010     00010000   01101010 00000000 == 000000000      01101010 || 00010000
+  a = a | 0b00010000;
+}
