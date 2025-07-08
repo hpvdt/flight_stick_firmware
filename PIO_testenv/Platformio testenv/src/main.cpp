@@ -6,8 +6,12 @@
 #include <string.h>
 #include <SPI.h>
 
-#define green_led PA7
-#define SPI2_CS PB6
+#define green_led  PA7
+#define rgb_green  PB0
+#define rgb_red    PB1
+#define rgb_blue   PB2
+
+#define SPI2_CS    PB6
 #define PIN_CS     PB6   // Chip Select
 #define PIN_SCLK   PB3   // SPI Clock
 #define PIN_MISO   PB4   // Master In Slave Out
@@ -30,13 +34,14 @@ void setup() {
   LED_Init(); // Initialize the LED
   Serial2.begin(115200); // PA2 = TX, PA3 = RX
   Serial2.println("Hello, USART2!"); // Initialize the USART2 UART peripheral
-
+  adcSetup();
 }
 
 void loop() {
   LED_test(100);
   Serial2.println(counter);
   counter++;
+  checkAdcConnection();
   delay(1000);
 }
 
@@ -45,6 +50,12 @@ static void LED_Init(void) // add more LEDs as needed
 {
   pinMode(green_led, OUTPUT); // Set PA7 as output for the green LED
   digitalWrite(green_led, LOW); // Initialize the LED to LOW (off) 
+  pinMode(rgb_red, OUTPUT);
+  digitalWrite(rgb_red, LOW);
+  pinMode(rgb_blue, OUTPUT);
+  digitalWrite(rgb_blue, LOW);
+  pinMode(rgb_green, OUTPUT);
+  digitalWrite(rgb_green, LOW);
   return; 
 }
 
@@ -91,9 +102,14 @@ void checkAdcConnection() {
   digitalWrite(PIN_CS, HIGH);      // Deselect ADC
 
   if (response != 0xFFFF && response != 0x0000) {
-    Serial.println("✅ ADS131M03 communication successful.");
+    digitalWrite(rgb_blue,HIGH);
+    delay(3000);
+    digitalWrite(rgb_blue,LOW);
+
   } else {
-    Serial.println("❌ ADS131M03 communication failed.");
+    digitalWrite(rgb_red,HIGH);
+    delay(3000);
+    digitalWrite(rgb_red,LOW);
   }
 
   delay(500);
