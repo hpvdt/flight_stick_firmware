@@ -6,16 +6,23 @@
 #include <string.h>
 #include <SPI.h>
 
-
+#define green_led PA7
+#define SPI2_CS PB6
+#define PIN_CS     PB6   // Chip Select
+#define PIN_SCLK   PB3   // SPI Clock
+#define PIN_MISO   PB4   // Master In Slave Out
+#define PIN_MOSI   PB5   // Master Out Slave In
+#define PIN_DRDY   PB7   // Data Ready (optional, but useful for sync check)
+#define PIN_RESET  PA9    // SYNC/RESET pin (NOT ACTUALLY SET)
+#define PIN_CLKOUT PA8    // MCO — Master Clock Output
 
 static void MX_USART2_UART_Init(void); //initialize the USART2 UART peripheral
 static void LED_Init(void); //initialize the LED pins
 void LED_test(int delay_time);
-uint16_t readRegister(uint8_t regAddr);
+void checkAdcConnection();
+void adcSetup();
 
 
-const int green_led= PA7;
-const int SPI2_CS = PB6;
 UART_HandleTypeDef huart2;
 uint64_t counter =0;
 
@@ -23,25 +30,11 @@ void setup() {
   LED_Init(); // Initialize the LED
   Serial2.begin(115200); // PA2 = TX, PA3 = RX
   Serial2.println("Hello, USART2!"); // Initialize the USART2 UART peripheral
-  SPI.begin(); // Initialize SPI
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1)); // ADS131M03 expects SPI mode 1
-  pinMode(SPI2_CS, OUTPUT); // Set the SPI2 chip select pin as output
-  digitalWrite(SPI2_CS, HIGH); // Set the chip select pin high (inactive
-  delay(10);  // Give time for ADC to boot
 
-  uint16_t id = readRegister(0x00); // Read ID register
-  Serial.print("ADS131M03 ID Register: 0x");
-  Serial.println(id, HEX);
-
-  if ((id & 0xFF00) == 0x3000) {
-    Serial.println("✅ SPI communication successful!");
-  } else {
-    Serial.println("❌ SPI communication failed or unexpected ID.");
-  }
 }
 
 void loop() {
-  //LED_test(50);
+  LED_test(100);
   Serial2.println(counter);
   counter++;
   delay(1000);
@@ -66,25 +59,42 @@ void LED_test(int delay_time)
     }
 }
 
-uint16_t readRegister(uint8_t regAddr) {
-  // Create READ REG command: 0b001xxxxx00000000
-  uint16_t command = 0x2000 | ((regAddr & 0x1F) << 7);
-  
-  uint8_t highByte = (command >> 8) & 0xFF;
-  uint8_t lowByte  = command & 0xFF;
+void adcSetup() {
+  // Configure MCO (Master Clock Output) on PA8 to output 8.192 MHz (assuming 72 MHz SYSCLK)
+  pinMode(PIN_CLKOUT, OUTPUT);
+  RCC->CFGR |= RCC_CFGR_MCO_SYSCLK; // Set MCO source to SYSCLK (72 MHz)
 
-  digitalWrite(SPI2_CS, LOW);
+  // Configure GPIOs
+  pinMode(PIN_CS, OUTPUT);
+  pinMode(PIN_RESET, OUTPUT);
+  pinMode(PIN_DRDY, INPUT);
+  digitalWrite(PIN_CS, HIGH);       // Deassert CS
+  digitalWrite(PIN_RESET, HIGH);    // Deassert reset
+
+  // Perform reset pulse
+  digitalWrite(PIN_RESET, LOW);
+  delay(10);
+  digitalWrite(PIN_RESET, HIGH);
+  delay(10);
+
+  // Begin SPI at 1 MHz, CPOL = 0, CPHA = 1
+  SPI.begin();
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1)); // Mode1: CPOL=0, CPHA=1
+}
+
+void checkAdcConnection() {
+  digitalWrite(PIN_CS, LOW);       // Select ADC
   delayMicroseconds(1);
 
-  // Send command
-  SPI.transfer(highByte);
-  SPI.transfer(lowByte);
+  uint16_t response = SPI.transfer16(0x0000); // Send NOP command
 
-  // Read 16-bit response
-  uint8_t respHigh = SPI.transfer(0x00);
-  uint8_t respLow  = SPI.transfer(0x00);
+  digitalWrite(PIN_CS, HIGH);      // Deselect ADC
 
-  digitalWrite(SPI2_CS, HIGH);
+  if (response != 0xFFFF && response != 0x0000) {
+    Serial.println("✅ ADS131M03 communication successful.");
+  } else {
+    Serial.println("❌ ADS131M03 communication failed.");
+  }
 
-  return ((uint16_t)respHigh << 8) | respLow;
+  delay(500);
 }
