@@ -31,17 +31,17 @@ UART_HandleTypeDef huart2;
 uint64_t counter =0;
 
 void setup() {
-  LED_Init(); // Initialize the LED
+  LED_Init(); 
   Serial2.begin(115200); // PA2 = TX, PA3 = RX
   Serial2.println("Hello, USART2!"); // Initialize the USART2 UART peripheral
   adcSetup();
 }
 
 void loop() {
-  LED_test(100);
-  Serial2.println(counter);
-  counter++;
-  checkAdcConnection();
+  LED_test(uint32_t(1000));
+  //Serial2.println(counter);
+  //counter++;
+  //checkAdcConnection();
   delay(1000);
 }
 
@@ -49,25 +49,26 @@ void loop() {
 static void LED_Init(void) // add more LEDs as needed
 {
   pinMode(green_led, OUTPUT); // Set PA7 as output for the green LED
-  digitalWrite(green_led, LOW); // Initialize the LED to LOW (off) 
+  digitalWrite(green_led, HIGH); // Initialize the LED to LOW (off) 
   pinMode(rgb_red, OUTPUT);
-  digitalWrite(rgb_red, LOW);
+  digitalWrite(rgb_red, HIGH);
   pinMode(rgb_blue, OUTPUT);
-  digitalWrite(rgb_blue, LOW);
+  digitalWrite(rgb_blue, HIGH);
   pinMode(rgb_green, OUTPUT);
-  digitalWrite(rgb_green, LOW);
+  digitalWrite(rgb_green, HIGH);
   return; 
 }
 
-void LED_test(int delay_time)
+void LED_test(u_int32_t delay_time)
 {
   for (int i = 0; i < 5; i++) // Blink the LED 5 times
     {
-    digitalWrite(green_led, HIGH); // Turn on the green LED
+    digitalWrite(rgb_blue, HIGH); // Turn on the green LED
     delay(delay_time); // Wait for the specified delay time
-    digitalWrite(green_led, LOW); // Turn off the green LED
+    digitalWrite(rgb_red, LOW); // Turn off the green LED
     delay(delay_time); // Wait for the specified delay time
     }
+    return;
 }
 
 void adcSetup() {
