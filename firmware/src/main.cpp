@@ -6,111 +6,99 @@
 #include <string.h>
 #include <SPI.h>
 
-#define green_led  PA7
-#define rgb_green  PB0
-#define rgb_red    PB1
-#define rgb_blue   PB2
+#define greenLed   PA7
+#define rgbGreen   PB0
+#define rgbRed     PB1
+#define rgbBlue    PB2
 
-#define SPI2_CS    PB6
-#define PIN_CS     PB6   // Chip Select
-#define PIN_SCLK   PB3   // SPI Clock
-#define PIN_MISO   PB4   // Master In Slave Out
-#define PIN_MOSI   PB5   // Master Out Slave In
-#define PIN_DRDY   PB7   // Data Ready (optional, but useful for sync check)
-#define PIN_RESET  PA9    // SYNC/RESET pin (NOT ACTUALLY SET)
-#define PIN_CLKOUT PA8    // MCO — Master Clock Output
+#define spi2Cs     PB6
+#define pinCs      PB6   // Chip Select
+#define pinSclk    PB3   // SPI Clock
+#define pinMiso    PB4   // Master In Slave Out
+#define pinMosi    PB5   // Master Out Slave In
+#define pinDrdy    PB7   // Data Ready (optional, but useful for sync check)
+#define pinReset   PA9   // SYNC/RESET pin (NOT ACTUALLY SET)
+#define pinClkOut  PA8   // MCO — Master Clock Output
 
-static void MX_USART2_UART_Init(void); //initialize the USART2 UART peripheral
-static void LED_Init(void); //initialize the LED pins
-void LED_test(int delay_time);
+static void initUsart2Uart(void); // Initialize the USART2 UART peripheral
+static void initLed(void);        // Initialize the LED pins
+void ledTest(uint32_t delayTime);
 void checkAdcConnection();
-void adcSetup();
-
+void setupAdc();
 
 UART_HandleTypeDef huart2;
-uint64_t counter =0;
+uint64_t counter = 0;
 
 void setup() {
-  LED_Init(); 
+  initLed(); 
   Serial2.begin(115200); // PA2 = TX, PA3 = RX
   Serial2.println("Hello, USART2!"); // Initialize the USART2 UART peripheral
-  adcSetup();
+  setupAdc();
 }
 
 void loop() {
-  LED_test(uint32_t(1000));
+  ledTest(1000);
   //Serial2.println(counter);
   //counter++;
   //checkAdcConnection();
   delay(1000);
 }
 
-
-static void LED_Init(void) // add more LEDs as needed
-{
-  pinMode(green_led, OUTPUT); // Set PA7 as output for the green LED
-  digitalWrite(green_led, HIGH); // Initialize the LED to LOW (off) 
-  pinMode(rgb_red, OUTPUT);
-  digitalWrite(rgb_red, HIGH);
-  pinMode(rgb_blue, OUTPUT);
-  digitalWrite(rgb_blue, HIGH);
-  pinMode(rgb_green, OUTPUT);
-  digitalWrite(rgb_green, HIGH);
-  return; 
+static void initLed(void) {
+  pinMode(greenLed, OUTPUT); 
+  digitalWrite(greenLed, HIGH); 
+  pinMode(rgbRed, OUTPUT);
+  digitalWrite(rgbRed, HIGH);
+  pinMode(rgbBlue, OUTPUT);
+  digitalWrite(rgbBlue, HIGH);
+  pinMode(rgbGreen, OUTPUT);
+  digitalWrite(rgbGreen, HIGH);
 }
 
-void LED_test(u_int32_t delay_time)
-{
-  for (int i = 0; i < 5; i++) // Blink the LED 5 times
-    {
-    digitalWrite(rgb_blue, HIGH); // Turn on the green LED
-    delay(delay_time); // Wait for the specified delay time
-    digitalWrite(rgb_red, LOW); // Turn off the green LED
-    delay(delay_time); // Wait for the specified delay time
-    }
-    return;
+void ledTest(uint32_t delayTime) {
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(rgbBlue, HIGH);
+    delay(delayTime);
+    digitalWrite(rgbRed, LOW);
+    delay(delayTime);
+  }
 }
 
-void adcSetup() {
-  // Configure MCO (Master Clock Output) on PA8 to output 8.192 MHz (assuming 72 MHz SYSCLK)
-  pinMode(PIN_CLKOUT, OUTPUT);
-  RCC->CFGR |= RCC_CFGR_MCO_SYSCLK; // Set MCO source to SYSCLK (72 MHz)
+void setupAdc() {
+  pinMode(pinClkOut, OUTPUT);
+  RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
 
-  // Configure GPIOs
-  pinMode(PIN_CS, OUTPUT);
-  pinMode(PIN_RESET, OUTPUT);
-  pinMode(PIN_DRDY, INPUT);
-  digitalWrite(PIN_CS, HIGH);       // Deassert CS
-  digitalWrite(PIN_RESET, HIGH);    // Deassert reset
+  pinMode(pinCs, OUTPUT);
+  pinMode(pinReset, OUTPUT);
+  pinMode(pinDrdy, INPUT);
+  digitalWrite(pinCs, HIGH);
+  digitalWrite(pinReset, HIGH);
 
-  // Perform reset pulse
-  digitalWrite(PIN_RESET, LOW);
+  digitalWrite(pinReset, LOW);
   delay(10);
-  digitalWrite(PIN_RESET, HIGH);
+  digitalWrite(pinReset, HIGH);
   delay(10);
 
-  // Begin SPI at 1 MHz, CPOL = 0, CPHA = 1
   SPI.begin();
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1)); // Mode1: CPOL=0, CPHA=1
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
 }
 
 void checkAdcConnection() {
-  digitalWrite(PIN_CS, LOW);       // Select ADC
+  digitalWrite(pinCs, LOW);
   delayMicroseconds(1);
 
-  uint16_t response = SPI.transfer16(0x0000); // Send NOP command
+  uint16_t response = SPI.transfer16(0x0000); 
 
-  digitalWrite(PIN_CS, HIGH);      // Deselect ADC
+  digitalWrite(pinCs, HIGH);
 
   if (response != 0xFFFF && response != 0x0000) {
-    digitalWrite(rgb_blue,HIGH);
+    digitalWrite(rgbBlue, HIGH);
     delay(3000);
-    digitalWrite(rgb_blue,LOW);
-
+    digitalWrite(rgbBlue, LOW);
   } else {
-    digitalWrite(rgb_red,HIGH);
+    digitalWrite(rgbRed, HIGH);
     delay(3000);
-    digitalWrite(rgb_red,LOW);
+    digitalWrite(rgbRed, LOW);
   }
 
   delay(500);
