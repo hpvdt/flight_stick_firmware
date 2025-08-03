@@ -6,19 +6,18 @@
 #include <string.h>
 #include <SPI.h>
 
-#define greenLed   PA7
-#define rgbGreen   PB0
-#define rgbRed     PB1
-#define rgbBlue    PB2
+#define GREEN_LED   PA7
+#define RGB_GREEN   PB0
+#define RGB_RED     PB1
+#define RGB_BLUE    PB2
 
-#define spi2Cs     PB6
-#define pinCs      PB6   // Chip Select
-#define pinSclk    PB3   // SPI Clock
-#define pinMiso    PB4   // Master In Slave Out
-#define pinMosi    PB5   // Master Out Slave In
-#define pinDrdy    PB7   // Data Ready (optional, but useful for sync check)
-#define pinReset   PA9   // SYNC/RESET pin (NOT ACTUALLY SET)
-#define pinClkOut  PA8   // MCO — Master Clock Output
+#define PIN_CS      PB6   
+#define PIN_SCLK    PB3   
+#define PIN_MISO    PB4   
+#define PIN_MOSI    PB5  
+#define PIN_DRDY    PB7   // TODO: implement interrupt-based data fetching
+#define PIN_RESET   PA9   // (NOT ACTUALLY used)
+#define PIN_CLKOUT  PA8   // MCO
 
 static void initUsart2Uart(void); // Initialize the USART2 UART peripheral
 static void initLed(void);        // Initialize the LED pins
@@ -45,38 +44,38 @@ void loop() {
 }
 
 static void initLed(void) {
-  pinMode(greenLed, OUTPUT); 
-  digitalWrite(greenLed, HIGH); 
-  pinMode(rgbRed, OUTPUT);
-  digitalWrite(rgbRed, HIGH);
-  pinMode(rgbBlue, OUTPUT);
-  digitalWrite(rgbBlue, HIGH);
-  pinMode(rgbGreen, OUTPUT);
-  digitalWrite(rgbGreen, HIGH);
+  pinMode(RGB_GREEN, OUTPUT); 
+  digitalWrite(RGB_GREEN, HIGH); 
+  pinMode(RGB_RED, OUTPUT);
+  digitalWrite(RGB_RED, HIGH);
+  pinMode(RGB_BLUE, OUTPUT);
+  digitalWrite(RGB_BLUE, HIGH);
+  pinMode(GREEN_LED, OUTPUT);
+  digitalWrite(GREEN_LED, HIGH);
 }
 
 void ledTest(uint32_t delayTime) {
   for (int i = 0; i < 5; i++) {
-    digitalWrite(rgbBlue, HIGH);
+    digitalWrite(RGB_BLUE, HIGH);
     delay(delayTime);
-    digitalWrite(rgbRed, LOW);
+    digitalWrite(RGB_RED, LOW);
     delay(delayTime);
   }
 }
 
 void setupAdc() {
-  pinMode(pinClkOut, OUTPUT);
+  pinMode(PIN_CLKOUT, OUTPUT);
   RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
 
-  pinMode(pinCs, OUTPUT);
-  pinMode(pinReset, OUTPUT);
-  pinMode(pinDrdy, INPUT);
-  digitalWrite(pinCs, HIGH);
-  digitalWrite(pinReset, HIGH);
+  pinMode(PIN_CS, OUTPUT);
+  pinMode(PIN_RESET, OUTPUT);
+  pinMode(PIN_DRDY, INPUT);
+  digitalWrite(PIN_CS, HIGH);
+  digitalWrite(PIN_RESET, HIGH);
 
-  digitalWrite(pinReset, LOW);
+  digitalWrite(PIN_RESET, LOW);
   delay(10);
-  digitalWrite(pinReset, HIGH);
+  digitalWrite(PIN_RESET, HIGH);
   delay(10);
 
   SPI.begin();
@@ -84,21 +83,21 @@ void setupAdc() {
 }
 
 void checkAdcConnection() {
-  digitalWrite(pinCs, LOW);
+  digitalWrite(PIN_CS, LOW);
   delayMicroseconds(1);
 
   uint16_t response = SPI.transfer16(0x0000); 
 
-  digitalWrite(pinCs, HIGH);
+  digitalWrite(PIN_CS, HIGH);
 
   if (response != 0xFFFF && response != 0x0000) {
-    digitalWrite(rgbBlue, HIGH);
+    digitalWrite(RGB_BLUE, HIGH);
     delay(3000);
-    digitalWrite(rgbBlue, LOW);
+    digitalWrite(RGB_BLUE, LOW);
   } else {
-    digitalWrite(rgbRed, HIGH);
+    digitalWrite(RGB_RED, HIGH);
     delay(3000);
-    digitalWrite(rgbRed, LOW);
+    digitalWrite(RGB_RED, LOW);
   }
 
   delay(500);
