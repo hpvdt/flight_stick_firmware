@@ -19,19 +19,19 @@
 #define PIN_RESET   PA9   // (NOT ACTUALLY used)
 #define PIN_CLKOUT  PA8   // MCO
 
-static void initUsart2Uart(void); // Initialize the USART2 UART peripheral
 static void initLed(void);        // Initialize the LED pins
 void ledTest(uint32_t delayTime);
+void ledCycle(); //sanity check for 
 void checkAdcConnection();
 void setupAdc();
 
-UART_HandleTypeDef huart2;
 uint64_t counter = 0;
 
 void setup() {
-  initLed(); 
   Serial2.begin(115200); // PA2 = TX, PA3 = RX
-  Serial2.println("Hello, USART2!"); // Initialize the USART2 UART peripheral
+  Serial2.println("Serial monitor initalized!");
+  initLed(); 
+  ledCycle();
   setupAdc();
 }
 
@@ -45,13 +45,13 @@ void loop() {
 
 static void initLed(void) {
   pinMode(RGB_GREEN, OUTPUT); 
-  digitalWrite(RGB_GREEN, HIGH); 
+  digitalWrite(RGB_GREEN, LOW); 
   pinMode(RGB_RED, OUTPUT);
-  digitalWrite(RGB_RED, HIGH);
+  digitalWrite(RGB_RED, LOW);
   pinMode(RGB_BLUE, OUTPUT);
-  digitalWrite(RGB_BLUE, HIGH);
+  digitalWrite(RGB_BLUE, LOW);
   pinMode(GREEN_LED, OUTPUT);
-  digitalWrite(GREEN_LED, HIGH);
+  digitalWrite(GREEN_LED, LOW);
 }
 
 void ledTest(uint32_t delayTime) {
@@ -61,6 +61,28 @@ void ledTest(uint32_t delayTime) {
     digitalWrite(RGB_RED, LOW);
     delay(delayTime);
   }
+}
+
+void ledCycle(){
+  digitalWrite(GREEN_LED, HIGH);
+  delay(1000);
+  digitalWrite(GREEN_LED, LOW);
+  delay(1000);
+
+  digitalWrite(RGB_BLUE, HIGH);
+  delay(1000);
+  digitalWrite(RGB_BLUE, LOW);
+  delay(1000);
+  
+  digitalWrite(RGB_GREEN, HIGH);
+  delay(1000);
+  digitalWrite(RGB_GREEN, LOW);
+  delay(1000);
+  
+  digitalWrite(RGB_RED, HIGH);
+  delay(1000);
+  digitalWrite(RGB_RED, LOW);
+  delay(1000);
 }
 
 void setupAdc() {
@@ -79,7 +101,6 @@ void setupAdc() {
   delay(10);
 
   SPI.begin();
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
 }
 
 void checkAdcConnection() {
