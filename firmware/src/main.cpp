@@ -87,7 +87,8 @@ void ledCycle(){
 
 void setupAdc() {
   pinMode(PIN_CLKOUT, OUTPUT);
-  RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
+  RCC->CFGR &= ~RCC_CFGR_MCO;
+  RCC->CFGR |= RCC_CFGR_MCO_SYSCLK; // Set MCO to SYSCLK
 
   pinMode(PIN_CS, OUTPUT);
   pinMode(PIN_RESET, OUTPUT);
